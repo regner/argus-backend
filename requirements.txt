@@ -4,5 +4,5 @@ flask-script==2.0.5
 flask-restful==0.3.5
 
 pyjwt==1.4.2
-webargs==1.4.0
+webargs==1.5.1
 oauthlib==2.0.1

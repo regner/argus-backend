@@ -1,4 +1,4 @@
-tox==2.3.2
+tox==2.5.0
 pytest==3.0.3
 pytest-cov==2.4.0
 pytest-mock==1.2

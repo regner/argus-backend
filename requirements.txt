@@ -1,8 +1,8 @@
-flask==0.11.1
+flask==0.12
 flask-cache==0.13.1
 flask-script==2.0.5
 flask-restful==0.3.5
 
 pyjwt==1.4.2
-webargs==1.4.0
+webargs==1.5.1
 oauthlib==2.0.1

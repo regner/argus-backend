@@ -7,16 +7,23 @@ import os
 class AppConfig(object):
     """Config object for the app that pulls from the environment."""
     DEBUG = True
-    SECRET_JWT = os.environ.get('SECRET_JWT', 'SomethingReallyComplicated!!!!')
+    JWT_SECRET = os.environ.get('JWT_SECRET', 'SomethingReallyComplicated!!!!')
+    JWT_EXPIRY = os.environ.get('JWT_SECRET', 48)
     CACHE_DEFAULT_TIMEOUT = os.environ.get('CACHE_DEFAULT_TIMEOUT', 600)
     CACHE_TYPE = os.environ.get('CACHE_TYPE', 'simple')
-    OAUTH_EVE = {
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'SQLALCHEMY_DATABASE_URI',
+        'postgresql://dev:123456@192.168.99.101:32774/argus'
+    )
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    CELERY_BROKER_URL = 'redis://192.168.99.101:32778/0'
+    OAUTH = {
         'CLIENT_ID': 'a72a32f2d4cc41c882132579271ca585',
         'CLIENT_SECRET': '8GNdJtk8sWdzQflrNQdEx2pYrZCK5Kux4WhEwftA',
         'URL_REDIRECT': 'http://localhost:8000/callback',
         'URL_AUTH': 'https://login.eveonline.com/oauth/authorize',
         'URL_TOKEN': 'https://login.eveonline.com/oauth/token',
-        'TOKEN_METHOD': 'POST',
+        'URL_VERIFY': 'https://login.eveonline.com/oauth/verify',
         'SCOPES': [
             'esi-planets.manage_planets.v1',
             'esi-assets.read_assets.v1',

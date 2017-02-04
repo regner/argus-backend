@@ -1,20 +1,70 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from oauthlib.oauth2 import WebApplicationClient
+import requests
+
+from flask import current_app
+from base64 import b64encode
+from requests_oauthlib import OAuth2Session
+from typing import Tuple, Dict
+from flask_restful import abort
 
 
-def build_oauth_client(provider_config):
-    """Builds a WebApplicationClient with the provided config."""
-    return WebApplicationClient(
-        client_id=provider_config['CLIENT_ID']
+def get_basic_oauth_client(token: dict = None):
+    """Builds a OAuth2Session."""
+    client = OAuth2Session(
+        client_id=current_app.config['OAUTH']['CLIENT_ID'],
+        scope=current_app.config['OAUTH']['SCOPES'],
+        redirect_uri=current_app.config['OAUTH']['URL_REDIRECT'],
     )
 
+    if token is not None:
+        client.token = token
 
-def generate_request_url(client: WebApplicationClient, provider_config):
+    return client
+
+
+def verify_code(code: str) -> Tuple[Dict, Dict]:
+    """Takes the code from an OAuth2 redirect and converts it to a auth token and character details."""
+    token_response = convert_code_to_auth_token(code)
+    client = get_basic_oauth_client(token=token_response)
+    verify_response = client.get(current_app.config['OAUTH']['URL_VERIFY'])
+
+    if verify_response.status_code != requests.codes.ok:
+        abort(503, message='Something went wrong with EVE SSO requests')
+
+    return token_response, verify_response.json()
+
+
+def get_authed_oauth_client():
+    return OAuth2Session
+
+
+def generate_request_url():
     """Uses the WebApplicationClient to generate a URL for users logging in."""
-    return client.prepare_request_uri(
-        uri=provider_config['URL_AUTH'],
-        redirect_uri=provider_config['URL_REDIRECT'],
-        scope=provider_config['SCOPES']
+    client = get_basic_oauth_client()
+    url, state = client.authorization_url(current_app.config['OAUTH']['URL_AUTH'])
+
+    return url
+
+
+def build_get_token_auth_header():
+    """Combines and base64 encodes the client ID and client secret."""
+    combined = '{}:{}'.format(current_app.config['OAUTH']['CLIENT_ID'], current_app.config['OAUTH']['CLIENT_SECRET'])
+    result = b64encode(bytes(combined, 'utf-8')).decode('utf-8')
+    return result
+
+
+def convert_code_to_auth_token(code: str):
+    """Takes an OAuth2 code and converts it to an authorization token."""
+    client = get_basic_oauth_client()
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic {}'.format(build_get_token_auth_header()),
+    }
+
+    return client.fetch_token(
+        token_url=current_app.config['OAUTH']['URL_TOKEN'],
+        code=code,
+        headers=headers
     )
